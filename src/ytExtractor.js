@@ -20,7 +20,7 @@ export async function extractVideoInfo(youtubeUrl) {
     }
 
     // Call our proxy backend to bypass CORS and spoof Android User-Agent
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const apiBase = 'https://a9ce8c0350b94146-122-183-45-55.serveousercontent.com';
     const res = await fetch(`${apiBase}/api/getVideoJson?videoId=${videoId}`);
     
     if (!res.ok) {
