@@ -20,12 +20,8 @@ export async function extractVideoInfo(youtubeUrl) {
     }
 
     // Call our proxy backend to bypass CORS and spoof Android User-Agent
-    const apiBase = 'https://myspace-mooing-lushly.ngrok-free.dev';
-    const res = await fetch(`${apiBase}/api/getVideoJson?videoId=${videoId}`, {
-      headers: {
-        'ngrok-skip-browser-warning': '69420'
-      }
-    });
+    const apiBase = 'https://streamify-mario-dev-77.loca.lt';
+    const res = await fetch(`${apiBase}/api/getVideoJson?videoId=${videoId}`);
     
     if (!res.ok) {
       throw new Error(`Failed to fetch video info: ${res.statusText}`);
