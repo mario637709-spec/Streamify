@@ -21,7 +21,11 @@ export async function extractVideoInfo(youtubeUrl) {
 
     // Call our proxy backend to bypass CORS and spoof Android User-Agent
     const apiBase = 'https://streamify-mario-dev-77.loca.lt';
-    const res = await fetch(`${apiBase}/api/getVideoJson?videoId=${videoId}`);
+    const res = await fetch(`${apiBase}/api/getVideoJson?videoId=${videoId}`, {
+      headers: {
+        'bypass-tunnel-reminder': 'true'
+      }
+    });
     
     if (!res.ok) {
       throw new Error(`Failed to fetch video info: ${res.statusText}`);
