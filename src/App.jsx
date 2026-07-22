@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Loader2, Download, Video, Music, Clock, Eye, AlertCircle, Play, ChevronRight, Clipboard, Check, X, QrCode, Filter, Volume2, Share2, Sun, Moon, Trash2, Calendar, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { extractVideoInfo } from './ytExtractor';
+import { extractVideoInfo, API_BASE } from './ytExtractor';
 
 // Toast Notification Component
 function Toast({ message, onClose }) {
@@ -839,10 +839,10 @@ export default function App() {
                                <motion.a 
                                  whileHover={{ scale: 1.15 }}
                                  whileTap={{ scale: 0.85 }}
-                                 href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}`}
+                                 href={`${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}`}
                                  target="_blank" 
                                  rel="noreferrer"
-                                 onClick={() => handleDownloadClick('Proxy', `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}`)}
+                                 onClick={() => handleDownloadClick('Proxy', `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}`)}
                                  className="w-9 h-9 bg-gradient-to-r from-[#0A84FF] to-[#5AC8FA] text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/40 glow-pulse"
                                  title="Proxy Download (Secure)"
                                >
@@ -941,10 +941,10 @@ export default function App() {
                                <motion.a 
                                  whileHover={{ scale: 1.15 }}
                                  whileTap={{ scale: 0.85 }}
-                                 href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}`}
+                                 href={`${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}`}
                                  target="_blank" 
                                  rel="noreferrer"
-                                 onClick={() => handleDownloadClick('Proxy audio', `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}`)}
+                                 onClick={() => handleDownloadClick('Proxy audio', `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}`)}
                                  className="w-9 h-9 bg-gradient-to-r from-[#0A84FF] to-[#5AC8FA] text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/40 glow-pulse"
                                  title="Proxy Download (Secure)"
                                >
