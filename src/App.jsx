@@ -839,10 +839,10 @@ export default function App() {
                                <motion.a 
                                  whileHover={{ scale: 1.15 }}
                                  whileTap={{ scale: 0.85 }}
-                                 href={`${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}`}
+                                 href={`${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}&ngrok-skip-browser-warning=true`}
                                  target="_blank" 
                                  rel="noreferrer"
-                                 onClick={() => handleDownloadClick('Proxy', `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}`)}
+                                 onClick={() => handleDownloadClick('Proxy', `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.mp4')}&ngrok-skip-browser-warning=true`)}
                                  className="w-9 h-9 bg-gradient-to-r from-[#0A84FF] to-[#5AC8FA] text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/40 glow-pulse"
                                  title="Proxy Download (Secure)"
                                >
@@ -941,10 +941,10 @@ export default function App() {
                                <motion.a 
                                  whileHover={{ scale: 1.15 }}
                                  whileTap={{ scale: 0.85 }}
-                                 href={`${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}`}
+                                 href={`${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}&ngrok-skip-browser-warning=true`}
                                  target="_blank" 
                                  rel="noreferrer"
-                                 onClick={() => handleDownloadClick('Proxy audio', `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}`)}
+                                 onClick={() => handleDownloadClick('Proxy audio', `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(videoInfo.title + '.m4a')}&ngrok-skip-browser-warning=true`)}
                                  className="w-9 h-9 bg-gradient-to-r from-[#0A84FF] to-[#5AC8FA] text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/40 glow-pulse"
                                  title="Proxy Download (Secure)"
                                >
