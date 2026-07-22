@@ -1,3 +1,5 @@
+export const API_BASE = 'https://myspace-mooing-lushly.ngrok-free.dev';
+
 export async function extractVideoInfo(youtubeUrl) {
   try {
     
@@ -20,8 +22,7 @@ export async function extractVideoInfo(youtubeUrl) {
     }
 
     // Call our proxy backend to bypass CORS and spoof Android User-Agent
-    const apiBase = 'https://myspace-mooing-lushly.ngrok-free.dev';
-    const res = await fetch(`${apiBase}/api/getVideoJson?videoId=${videoId}`, {
+    const res = await fetch(`${API_BASE}/api/getVideoJson?videoId=${videoId}`, {
       headers: {
         'ngrok-skip-browser-warning': '69420'
       }
