@@ -1,4 +1,4 @@
-export const API_BASE = 'https://rural-maryland-bullet-odds.trycloudflare.com';
+export const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-proxy-server.onrender.com';
 
 export async function extractVideoInfo(youtubeUrl) {
   try {
