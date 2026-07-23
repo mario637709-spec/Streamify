@@ -1,4 +1,4 @@
-export const API_BASE = 'https://myspace-mooing-lushly.ngrok-free.dev';
+export const API_BASE = 'https://cage-wed-killing-platform.trycloudflare.com';
 
 export async function extractVideoInfo(youtubeUrl) {
   try {
