@@ -373,49 +373,27 @@ export default function App() {
     
     // Copy proxy/direct link helper or show share status
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(directUrl);
+        navigator.clipboard.writeText(directUrl);
       showToast('Download link copied to clipboard!');
     }
   };
 
-  const handleDownload = async (fmt, extension) => {
-    const filename = `${videoInfo.title}.${extension}`;
-    const isLarge = fmt.filesize && fmt.filesize > 100 * 1024 * 1024; // > 100MB
+  const handleDownload = (fmt, extension) => {
+    if (!videoInfo || !fmt?.url) return;
+    const cleanTitle = (videoInfo.title || 'video').replace(/[/\\?%*:|"<>]/g, '_');
+    const filename = `${cleanTitle}.${extension || 'mp4'}`;
+    const downloadUrl = `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(filename)}`;
     
-    if (isLarge) {
-      showToast('Redirecting to direct download...');
-      window.open(fmt.url, '_blank');
-      return;
-    }
+    showToast(`Downloading ${fmt.resolution || extension || 'media'}...`);
 
-    try {
-      showToast('Downloading via secure proxy...');
-      const downloadUrl = `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(filename)}`;
-      const response = await fetch(downloadUrl, {
-        headers: {
-          'ngrok-skip-browser-warning': '69420'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const tempLink = document.createElement('a');
-      tempLink.href = blobUrl;
-      tempLink.download = filename;
-      document.body.appendChild(tempLink);
-      tempLink.click();
-      tempLink.remove();
-      window.URL.revokeObjectURL(blobUrl);
-      showToast('Download completed!');
-    } catch (err) {
-      console.error('Proxy download failed:', err);
-      showToast('Proxy failed, opening direct link...');
-      window.open(fmt.url, '_blank');
-    }
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 1000);
   };
 
   const formatViews = (views) => {
