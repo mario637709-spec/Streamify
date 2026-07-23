@@ -1,4 +1,4 @@
-export const API_BASE = 'https://halloween-looksmart-henderson-sara.trycloudflare.com';
+export const API_BASE = 'https://backend-proxy-server.onrender.com';
 
 export async function extractVideoInfo(youtubeUrl) {
   try {
