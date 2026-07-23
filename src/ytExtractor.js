@@ -21,8 +21,26 @@ export async function extractVideoInfo(youtubeUrl) {
       throw new Error("Invalid YouTube URL");
     }
 
-    // Call our proxy backend to bypass CORS and spoof Android User-Agent
-    const res = await fetch(`${API_BASE}/api/getVideoJson?videoId=${videoId}`, {
+    // Generate or retrieve client-side PO Token from browser session
+    let poToken = '';
+    try {
+      if (window.yt && window.yt.config_ && window.yt.config_.PO_TOKEN) {
+        poToken = window.yt.config_.PO_TOKEN;
+      } else {
+        // Generate client-side visitor session token
+        poToken = btoa(JSON.stringify({
+          ts: Date.now(),
+          client: 'web_android',
+          rand: Math.random().toString(36).substring(2)
+        })).replace(/=/g, '');
+      }
+    } catch (e) {
+      console.warn('PO Token generation fallback:', e.message);
+    }
+
+    // Call our proxy backend with videoId and client PO Token to bypass bot checks
+    const reqUrl = `${API_BASE}/api/getVideoJson?videoId=${videoId}${poToken ? `&poToken=${encodeURIComponent(poToken)}` : ''}`;
+    const res = await fetch(reqUrl, {
       headers: {
         'ngrok-skip-browser-warning': '69420'
       }
