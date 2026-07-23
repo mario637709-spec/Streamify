@@ -1,4 +1,4 @@
-export const API_BASE = 'https://cage-wed-killing-platform.trycloudflare.com';
+export const API_BASE = 'https://designing-processing-automation-emission.trycloudflare.com';
 
 export async function extractVideoInfo(youtubeUrl) {
   try {
