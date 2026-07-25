@@ -6,15 +6,23 @@ export async function extractVideoInfo(youtubeUrl) {
     // Extract video ID
     let videoId = '';
     const trimmedUrl = youtubeUrl.trim();
-    const urlObj = new URL(trimmedUrl);
-    if (urlObj.hostname.includes('youtu.be')) {
-        videoId = urlObj.pathname.slice(1);
-    } else {
-        videoId = urlObj.searchParams.get('v');
-    }
     
-    if (!videoId && youtubeUrl.length === 11) {
-        videoId = youtubeUrl;
+    if (trimmedUrl.length === 11 && !trimmedUrl.includes('://')) {
+        videoId = trimmedUrl;
+    } else {
+        try {
+            const urlObj = new URL(trimmedUrl);
+            if (urlObj.hostname.includes('youtu.be')) {
+                videoId = urlObj.pathname.slice(1);
+            } else {
+                videoId = urlObj.searchParams.get('v');
+            }
+        } catch (e) {
+            // Not a valid URL, fallback to check length
+            if (trimmedUrl.length === 11) {
+                videoId = trimmedUrl;
+            }
+        }
     }
     
     if (!videoId) {
@@ -40,17 +48,31 @@ export async function extractVideoInfo(youtubeUrl) {
 
     // Call our proxy backend with videoId and client PO Token to bypass bot checks
     const reqUrl = `${API_BASE}/api/getVideoJson?videoId=${videoId}${poToken ? `&poToken=${encodeURIComponent(poToken)}` : ''}`;
-    const res = await fetch(reqUrl, {
-      headers: {
-        'ngrok-skip-browser-warning': '69420'
-      }
-    });
     
-    if (!res.ok) {
-      throw new Error(`Failed to fetch video info: ${res.statusText}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+    
+    let res;
+    try {
+      res = await fetch(reqUrl, {
+        headers: { 'ngrok-skip-browser-warning': '69420' },
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
     }
     
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      throw new Error(`Failed to parse backend response (HTTP ${res.status})`);
+    }
+    
+    if (!res.ok) {
+      throw new Error(data.error || `Failed to fetch video info: HTTP ${res.status}`);
+    }
+    
     if (data.error) throw new Error(data.error);
 
     // Handle duration (can be string or number)
@@ -71,6 +93,6 @@ export async function extractVideoInfo(youtubeUrl) {
     };
   } catch (err) {
     console.error('Extraction Error:', err);
-    throw new Error('Failed to extract video. Please check the URL and try again.');
+    throw new Error(err.message || 'Failed to extract video. Please check the URL and try again.');
   }
 }
