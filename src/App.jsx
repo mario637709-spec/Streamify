@@ -246,7 +246,14 @@ export default function App() {
   // Load theme & history on mount
   useEffect(() => {
     const saved = localStorage.getItem('ytdown_history');
-    if (saved) setHistory(JSON.parse(saved));
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch(e) {
+        console.error('History parse error', e);
+        localStorage.removeItem('ytdown_history');
+      }
+    }
 
     const savedTheme = localStorage.getItem('ytdown_dark');
     if (savedTheme) {
@@ -380,7 +387,7 @@ export default function App() {
 
   const handleDownload = (fmt, extension) => {
     if (!videoInfo || !fmt?.url) return;
-    const cleanTitle = (videoInfo.title || 'video').replace(/[/\\?%*:|"<>]/g, '_');
+    const cleanTitle = (videoInfo.title || 'video').replace(/[\/\\?%*:|"<>]/g, '_');
     const filename = `${cleanTitle}.${extension || 'mp4'}`;
     const downloadUrl = `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(filename)}`;
     
@@ -397,7 +404,7 @@ export default function App() {
   };
 
   const formatViews = (views) => {
-    if (!views) return 'N/A';
+    if (views === undefined || views === null) return 'N/A';
     return new Intl.NumberFormat('en-US', { notation: "compact" }).format(views);
   };
 
@@ -424,25 +431,22 @@ export default function App() {
   
   // Filtering Logic
   const filteredFormats = allFormats.filter(fmt => {
-    if (activeFilter === 'audio') {
-      return !fmt.vcodec && fmt.acodec;
-    }
-    if (activeFilter === 'mp4') {
-      return fmt.vcodec && fmt.ext === 'mp4';
-    }
-    if (activeFilter === 'webm') {
-      return fmt.vcodec && fmt.ext === 'webm';
-    }
+    const isVideo = fmt.vcodec && fmt.vcodec !== 'none';
+    const isAudio = (!fmt.vcodec || fmt.vcodec === 'none') && fmt.acodec && fmt.acodec !== 'none';
+    
+    if (activeFilter === 'audio') return isAudio;
+    if (activeFilter === 'mp4') return isVideo && fmt.ext === 'mp4';
+    if (activeFilter === 'webm') return isVideo && fmt.ext === 'webm';
     return true;
   });
 
   const videoFormats = activeFilter === 'all' 
-    ? filteredFormats.filter(f => f.vcodec).slice(0, 6)
-    : filteredFormats.filter(f => f.vcodec);
+    ? filteredFormats.filter(f => f.vcodec && f.vcodec !== 'none').slice(0, 6)
+    : filteredFormats.filter(f => f.vcodec && f.vcodec !== 'none');
 
   const audioFormats = activeFilter === 'all'
-    ? filteredFormats.filter(f => !f.vcodec && f.acodec).slice(0, 4)
-    : filteredFormats.filter(f => !f.vcodec && f.acodec);
+    ? filteredFormats.filter(f => (!f.vcodec || f.vcodec === 'none') && f.acodec && f.acodec !== 'none').slice(0, 4)
+    : filteredFormats.filter(f => (!f.vcodec || f.vcodec === 'none') && f.acodec && f.acodec !== 'none');
 
   // Find max size for visual comparison bar
   const allSizes = [...videoFormats, ...audioFormats].map(f => f.filesize || 0);
