@@ -252,6 +252,7 @@ export default function App() {
       } catch(e) {
         console.error('History parse error', e);
         localStorage.removeItem('ytdown_history');
+        setHistory([]); // Fixed: Reset state on parse error
       }
     }
 
@@ -389,17 +390,23 @@ export default function App() {
     if (!videoInfo || !fmt?.url) return;
     const cleanTitle = (videoInfo.title || 'video').replace(/[\/\\?%*:|"<>]/g, '_');
     const filename = `${cleanTitle}.${extension || 'mp4'}`;
-    const downloadUrl = `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(filename)}`;
     
-    showToast(`Downloading ${fmt.resolution || extension || 'media'}...`);
+    showToast(`Starting full download: ${fmt.resolution || extension}...`);
+
+    // Route through /api/download proxy which sends RFC 6266 Content-Disposition: attachment headers
+    // This forces Chrome to download 100% of the 100MB+ file instead of truncating to 1-2MB preview chunk
+    const downloadUrl = `${API_BASE}/api/download?url=${encodeURIComponent(fmt.url)}&filename=${encodeURIComponent(filename)}`;
 
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
+    
     setTimeout(() => {
-      document.body.removeChild(link);
+      if (document.body.contains(link)) {
+        document.body.removeChild(link);
+      }
     }, 1000);
   };
 
