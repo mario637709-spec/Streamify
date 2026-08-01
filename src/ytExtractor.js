@@ -29,21 +29,14 @@ export async function extractVideoInfo(youtubeUrl) {
       throw new Error("Invalid YouTube URL");
     }
 
-    // Generate or retrieve client-side PO Token from browser session
+    // Retrieve client-side PO Token from browser session if present
     let poToken = '';
     try {
       if (window.yt && window.yt.config_ && window.yt.config_.PO_TOKEN) {
         poToken = window.yt.config_.PO_TOKEN;
-      } else {
-        // Generate client-side visitor session token
-        poToken = btoa(JSON.stringify({
-          ts: Date.now(),
-          client: 'web_android',
-          rand: Math.random().toString(36).substring(2)
-        })).replace(/=/g, '');
       }
     } catch (e) {
-      console.warn('PO Token generation fallback:', e.message);
+      // PO token not available
     }
 
     // Call our proxy backend with videoId and client PO Token to bypass bot checks
