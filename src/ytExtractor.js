@@ -1,6 +1,4 @@
-// Dynamic Active Tunnel API Base & Fallback Pipeline
-export const API_BASE = 'https://tube-sufficiently-occupations-viii.trycloudflare.com';
-export const RENDER_BACKEND = 'https://backend-proxy-server.onrender.com';
+export const API_BASE = 'https://backend-proxy-server.onrender.com';
 
 export async function extractVideoInfo(youtubeUrl) {
   try {
@@ -18,22 +16,18 @@ export async function extractVideoInfo(youtubeUrl) {
     let data = null;
     let lastError = null;
 
-    // Prioritize direct fast tunnel URL, with fallback to Render backend
     const endpoints = [
-      `${API_BASE}/api/getVideoJson?videoId=${videoId}`,
-      `${RENDER_BACKEND}/api/getVideoJson?videoId=${videoId}`
+      `${API_BASE}/api/getVideoJson?videoId=${videoId}`
     ];
 
-    // Query Render health check to discover any newly updated tunnel URL dynamically
+    // Query Render health check to discover the dynamic active Cloudflare tunnel URL
     try {
-      const hRes = await fetch(`${RENDER_BACKEND}/health`, { signal: AbortSignal.timeout(3000) });
+      const hRes = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(4000) });
       if (hRes.ok) {
         const hData = await hRes.json();
         if (hData.activeTunnelUrl) {
-          const dynamicEndpoint = `${hData.activeTunnelUrl}/api/getVideoJson?videoId=${videoId}`;
-          if (!endpoints.includes(dynamicEndpoint)) {
-            endpoints.unshift(dynamicEndpoint);
-          }
+          const dynamicTunnelEndpoint = `${hData.activeTunnelUrl}/api/getVideoJson?videoId=${videoId}`;
+          endpoints.unshift(dynamicTunnelEndpoint); // Try dynamic tunnel first for maximum speed
         }
       }
     } catch (e) {}
