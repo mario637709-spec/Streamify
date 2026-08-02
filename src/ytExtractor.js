@@ -2,73 +2,69 @@ export const API_BASE = 'https://backend-proxy-server.onrender.com';
 
 export async function extractVideoInfo(youtubeUrl) {
   try {
-    
-    // Extract video ID
     let videoId = '';
     const trimmedUrl = youtubeUrl.trim();
     
-    if (trimmedUrl.length === 11 && !trimmedUrl.includes('://')) {
-        videoId = trimmedUrl;
-    } else {
-        try {
-            const urlObj = new URL(trimmedUrl);
-            if (urlObj.hostname.includes('youtu.be')) {
-                videoId = urlObj.pathname.slice(1);
-            } else {
-                videoId = urlObj.searchParams.get('v');
-            }
-        } catch (e) {
-            // Not a valid URL, fallback to check length
-            if (trimmedUrl.length === 11) {
-                videoId = trimmedUrl;
-            }
+    // Clean 11-character video ID extraction
+    const match = trimmedUrl.match(/(?:v=|\/v\/|embed\/|youtu\.be\/|shorts\/|^)([\w-]{11})/);
+    videoId = match ? match[1] : trimmedUrl.split('&')[0].split('?')[0].trim();
+    
+    if (!videoId || videoId.length !== 11) {
+      throw new Error("Invalid YouTube URL or Video ID");
+    }
+
+    let data = null;
+    let lastError = null;
+
+    // Direct endpoints list: Primary Render Backend -> Live Cloudflare Tunnel
+    const endpoints = [
+      `${API_BASE}/api/getVideoJson?videoId=${videoId}`
+    ];
+
+    // Query Render health check for live active tunnel URL dynamically
+    try {
+      const hRes = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(4000) });
+      if (hRes.ok) {
+        const hData = await hRes.json();
+        if (hData.activeTunnelUrl) {
+          endpoints.push(`${hData.activeTunnelUrl}/api/getVideoJson?videoId=${videoId}`);
         }
-    }
-    
-    if (!videoId) {
-      throw new Error("Invalid YouTube URL");
-    }
-
-    // Retrieve client-side PO Token from browser session if present
-    let poToken = '';
-    try {
-      if (window.yt && window.yt.config_ && window.yt.config_.PO_TOKEN) {
-        poToken = window.yt.config_.PO_TOKEN;
       }
-    } catch (e) {
-      // PO token not available
+    } catch (e) {}
+
+    // Fallback static active tunnel as safety net
+    endpoints.push(`https://walk-rome-hall-worldcat.trycloudflare.com/api/getVideoJson?videoId=${videoId}`);
+
+    for (const reqUrl of endpoints) {
+      try {
+        console.log('⚡ Trying extraction endpoint:', reqUrl);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+        const res = await fetch(reqUrl, {
+          headers: { 'ngrok-skip-browser-warning': '69420' },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.formats && json.formats.length > 0) {
+            data = json;
+            break;
+          }
+        }
+      } catch (err) {
+        console.warn('Endpoint extraction failed:', reqUrl, err.message);
+        lastError = err;
+      }
     }
 
-    // Call our proxy backend with videoId and client PO Token to bypass bot checks
-    const reqUrl = `${API_BASE}/api/getVideoJson?videoId=${videoId}${poToken ? `&poToken=${encodeURIComponent(poToken)}` : ''}`;
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
-    
-    let res;
-    try {
-      res = await fetch(reqUrl, {
-        headers: { 'ngrok-skip-browser-warning': '69420' },
-        signal: controller.signal
-      });
-    } finally {
-      clearTimeout(timeoutId);
+    if (!data) {
+      throw new Error(lastError?.message || "Failed to extract video information. Please try again.");
     }
-    
-    let data;
-    try {
-      data = await res.json();
-    } catch (e) {
-      throw new Error(`Failed to parse backend response (HTTP ${res.status})`);
-    }
-    
-    if (!res.ok) {
-      throw new Error(data.error || `Failed to fetch video info: HTTP ${res.status}`);
-    }
-    
-    if (data.error) throw new Error(data.error);
 
-    // Handle duration (can be string or number)
+    // Handle duration formatting
     let durationStr = data.duration;
     if (typeof data.duration === 'number' || (typeof data.duration === 'string' && !data.duration.includes(':'))) {
       const sec = parseInt(data.duration || 0);
