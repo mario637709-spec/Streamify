@@ -1,5 +1,5 @@
 // Dynamic Active Tunnel API Base & Fallback Pipeline
-export const API_BASE = 'https://walk-rome-hall-worldcat.trycloudflare.com';
+export const API_BASE = 'https://tube-sufficiently-occupations-viii.trycloudflare.com';
 export const RENDER_BACKEND = 'https://backend-proxy-server.onrender.com';
 
 export async function extractVideoInfo(youtubeUrl) {
