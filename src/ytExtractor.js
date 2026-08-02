@@ -1,4 +1,6 @@
-export const API_BASE = 'https://backend-proxy-server.onrender.com';
+// Dynamic Active Tunnel API Base & Fallback Pipeline
+export const API_BASE = 'https://walk-rome-hall-worldcat.trycloudflare.com';
+export const RENDER_BACKEND = 'https://backend-proxy-server.onrender.com';
 
 export async function extractVideoInfo(youtubeUrl) {
   try {
@@ -16,28 +18,29 @@ export async function extractVideoInfo(youtubeUrl) {
     let data = null;
     let lastError = null;
 
-    // Direct endpoints list: Primary Render Backend -> Live Cloudflare Tunnel
+    // Prioritize direct fast tunnel URL, with fallback to Render backend
     const endpoints = [
-      `${API_BASE}/api/getVideoJson?videoId=${videoId}`
+      `${API_BASE}/api/getVideoJson?videoId=${videoId}`,
+      `${RENDER_BACKEND}/api/getVideoJson?videoId=${videoId}`
     ];
 
-    // Query Render health check for live active tunnel URL dynamically
+    // Query Render health check to discover any newly updated tunnel URL dynamically
     try {
-      const hRes = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(4000) });
+      const hRes = await fetch(`${RENDER_BACKEND}/health`, { signal: AbortSignal.timeout(3000) });
       if (hRes.ok) {
         const hData = await hRes.json();
         if (hData.activeTunnelUrl) {
-          endpoints.push(`${hData.activeTunnelUrl}/api/getVideoJson?videoId=${videoId}`);
+          const dynamicEndpoint = `${hData.activeTunnelUrl}/api/getVideoJson?videoId=${videoId}`;
+          if (!endpoints.includes(dynamicEndpoint)) {
+            endpoints.unshift(dynamicEndpoint);
+          }
         }
       }
     } catch (e) {}
 
-    // Fallback static active tunnel as safety net
-    endpoints.push(`https://walk-rome-hall-worldcat.trycloudflare.com/api/getVideoJson?videoId=${videoId}`);
-
     for (const reqUrl of endpoints) {
       try {
-        console.log('⚡ Trying extraction endpoint:', reqUrl);
+        console.log('⚡ Attempting extraction via endpoint:', reqUrl);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 25000);
 
@@ -55,7 +58,7 @@ export async function extractVideoInfo(youtubeUrl) {
           }
         }
       } catch (err) {
-        console.warn('Endpoint extraction failed:', reqUrl, err.message);
+        console.warn('Endpoint extraction attempt failed:', reqUrl, err.message);
         lastError = err;
       }
     }
